@@ -527,4 +527,4 @@ MonoBehaviour:
   xMin: -19
   xMax: 19
   yVelocity: 0.02
-  xVelocity: 0.1
+  xVelocity: 0.05
