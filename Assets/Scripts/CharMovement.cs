@@ -13,6 +13,8 @@ public class CharMovement : MonoBehaviour
     public float xVelocity = 0f;
 
     private Animator animator = null;
+    private Vector3 left = new Vector3(-0.6f, 0.6f, 1f);
+    private Vector3 right = new Vector3(0.6f, 0.6f, 1f);
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +32,12 @@ public class CharMovement : MonoBehaviour
         //transform.position
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
+        if (horizontal < 0) {
+            transform.localScale = left;
+        }
+        if (horizontal > 0) {
+            transform.localScale = right;
+        }
         if (horizontal != 0f || vertical != 0f) {
             float positionDeltaX = horizontal * xVelocity;
             float positionDeltaY = vertical * yVelocity;
@@ -41,6 +49,8 @@ public class CharMovement : MonoBehaviour
         else {
             animator.SetBool("IsWalking", false);
         }
-        
+        if (Input.GetKeyDown(KeyCode.LeftControl)) {
+            animator.SetTrigger("Roll");
+        }
     }
 }
