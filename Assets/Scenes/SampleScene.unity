@@ -210,7 +210,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 9.5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -447,22 +447,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Char
       objectReference: {fileID: 0}
-    - target: {fileID: 4012380360079416339, guid: 08ab4a0fe9825d6f2ae9e16637ba2a0c, type: 3}
-      propertyPath: m_SpriteKey
-      value: 0.011729987
-      objectReference: {fileID: 0}
-    - target: {fileID: 4012380360079416339, guid: 08ab4a0fe9825d6f2ae9e16637ba2a0c, type: 3}
-      propertyPath: m_CategoryHash
-      value: 1.8625731e-11
-      objectReference: {fileID: 0}
-    - target: {fileID: 4012380360079416348, guid: 08ab4a0fe9825d6f2ae9e16637ba2a0c, type: 3}
-      propertyPath: m_Controller
-      value: 
-      objectReference: {fileID: 9100000, guid: 626b997dd890d449687127ce4ea63407, type: 2}
-    - target: {fileID: 4012380360079416349, guid: 08ab4a0fe9825d6f2ae9e16637ba2a0c, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: b95048aa8edd0d0b493d5a3754cb9a50, type: 3}
     - target: {fileID: 4012380360079416350, guid: 08ab4a0fe9825d6f2ae9e16637ba2a0c, type: 3}
       propertyPath: m_RootOrder
       value: 2
