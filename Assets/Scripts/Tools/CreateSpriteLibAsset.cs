@@ -23,40 +23,58 @@ public class CreateSpriteLibAsset : EditorWindow
     {
         GUILayout.Label("Base Settings", EditorStyles.boldLabel);
         texturesFolder = EditorGUILayout.TextField("Sprites Folder", texturesFolder);
-        if (GUILayout.Button("Ok")) {
-            var fullPath = _spritesRoot + texturesFolder;
-            var searchResult = AssetDatabase
-                .FindAssets("t:Texture2D", new string[]{fullPath})
-                .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
-                .ToList();
-            if (searchResult.Any()){
-                var groups = searchResult.GroupBy(sprite => {
-                    var match = _groupsRegEx.Match(sprite);
-                    return match.Groups[1].Value;
-                },
-                element => {
-                    var match = _groupsRegEx.Match(element);
-                    return match.Groups[2].Value + ';' + element;
-                }).ToDictionary(g => g.Key, g => g.ToList());
-                var spriteLib = ScriptableObject.CreateInstance<SpriteLibraryAsset>();                
-                foreach (var (k, v) in groups)
+        if (GUILayout.Button("All"))
+        {
+            GenerateAssetLibrary();
+        }
+        if (GUILayout.Button("AssetLibrary"))
+        {
+            GenerateAssetLibrary();
+        }
+    }
+
+    private void GenerateAssetLibrary()
+    {
+        var fullPath = _spritesRoot + texturesFolder;
+        var assetName = _spritesRoot + "SpriteLibraries/" + texturesFolder + ".asset";
+        AssetDatabase.DeleteAsset(assetName);
+        var searchResult = AssetDatabase
+            .FindAssets("t:Texture2D", new string[] { fullPath })
+            .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
+            .ToList();
+        if (searchResult.Any())
+        {
+            var groups = searchResult.GroupBy(sprite =>
+            {
+                var match = _groupsRegEx.Match(sprite);
+                return match.Groups[1].Value;
+            },
+            element =>
+            {
+                var match = _groupsRegEx.Match(element);
+                return match.Groups[2].Value + ';' + element;
+            }).ToDictionary(g => g.Key, g => g.ToList());
+            var spriteLib = ScriptableObject.CreateInstance<SpriteLibraryAsset>();
+            foreach (var (k, v) in groups)
+            {
+                foreach (var str in v.OrderBy(el =>
                 {
-                    foreach(var str in v.OrderBy(el => {
-                        var idx = el.IndexOf(';');
-                        var i = int.Parse(el.Substring(0, idx));
-                        return i;
-                    })){
-                        var values = str.Split(';');
-                        var t = (Sprite)AssetDatabase.LoadAssetAtPath(values[1], typeof(Sprite));
-                        Debug.Log($"Creating category = {k} label = {values[0]} sprite = {t.GetType()}");
-                        spriteLib.AddCategoryLabel(t, k, values[0]);
-                    }
+                    var idx = el.IndexOf(';');
+                    var i = int.Parse(el.Substring(0, idx));
+                    return i;
+                }))
+                {
+                    var values = str.Split(';');
+                    var t = (Sprite)AssetDatabase.LoadAssetAtPath(values[1], typeof(Sprite));
+                    Debug.Log($"Creating category = {k} label = {values[0]} sprite = {t.GetType()}");
+                    spriteLib.AddCategoryLabel(t, k, values[0]);
                 }
-                AssetDatabase.CreateAsset(spriteLib, _spritesRoot + "SpriteLibraries/" + texturesFolder + ".asset");
             }
-            else {
-                Debug.Log($"Sprites in folder {fullPath} not found");
-            }
+            AssetDatabase.CreateAsset(spriteLib, assetName);
+        }
+        else
+        {
+            Debug.Log($"Sprites in folder {fullPath} not found");
         }
     }
 }
