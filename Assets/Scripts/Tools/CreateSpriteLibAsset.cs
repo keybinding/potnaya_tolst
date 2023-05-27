@@ -62,9 +62,12 @@ public class CreateSpriteLibAsset : EditorWindow
         string prefabPath = _prefabsFolder + "/" + texturesFolder + "/" + texturesFolder + ".prefab";
         AssetDatabase.DeleteAsset(prefabPath);
         var go = new GameObject();
+        go = PrefabUtility.SaveAsPrefabAsset(go, prefabPath, out bool success);
+        if (!success) {
+            Debug.Log($"Can't save prefab {prefabPath}");
+        }
         go.name = texturesFolder;
         var spriteRenderer = go.AddComponent<SpriteRenderer>();
-        
         var spriteResolver = go.AddComponent<SpriteResolver>();
         var spriteLibraryPath = _spritesRoot + "SpriteLibraries/" + texturesFolder + ".asset";
         var spriteLibraryAsset = (SpriteLibraryAsset)AssetDatabase.LoadAssetAtPath(spriteLibraryPath, typeof(SpriteLibraryAsset));
@@ -72,12 +75,9 @@ public class CreateSpriteLibAsset : EditorWindow
         spriteLibrary.spriteLibraryAsset = spriteLibraryAsset;
         spriteResolver.SetCategoryAndLabel("idle", "0");
         var animator = go.AddComponent<Animator>();
-        animator.enabled = false;
         var animController = GenerateAnimController(spriteLibraryAsset);
         animator.runtimeAnimatorController = animController;
-        PrefabUtility.SaveAsPrefabAsset(go, prefabPath, out bool success);
-        if (!success)
-            Debug.Log($"Can't save prefab {prefabPath}");
+        
         //GameObject.DestroyImmediate(go);
     }
 
@@ -104,7 +104,9 @@ public class CreateSpriteLibAsset : EditorWindow
             AssetDatabase.CreateAsset(clip, animPath);
             categoriesToStates.Add(c, state);
         }
+        
         var idleState = categoriesToStates["idle"];
+        controller.layers[0].stateMachine.defaultState = idleState;
         var walkState = categoriesToStates["walk"];
         var rollState = categoriesToStates["roll"];
 
@@ -138,15 +140,10 @@ public class CreateSpriteLibAsset : EditorWindow
         var labels = spriteLibrary.GetCategoryLabelNames(clipName).ToList();
         var curve = new AnimationCurve();
         for (int i = 0; i < labels.Count; ++i){
-            var value = GetHash($"{clipName}_{labels[i]}");
-            var fvalue = BitConverter.ToSingle(BitConverter.GetBytes(value));
-            Debug.Log($"Hash = {value} Label = {labels[i]} Category = {clipName}");
-            curve.AddKey(i * 5 / 60f, fvalue);
+            curve.AddKey(i * 5 / 60f, GetKey(clipName, labels[i]));
         }
         if (labels.Count > 0) {
-            var value = GetHash($"{clipName}_{labels[0]}");
-            var fvalue = BitConverter.ToSingle(BitConverter.GetBytes(value));
-            curve.AddKey(labels.Count * 5 / 60f, fvalue);
+            curve.AddKey(labels.Count * 5 / 60f, GetKey(clipName, labels[0]));
         }
         for(var i = 0; i < labels.Count + 1; i++)
         {
@@ -155,7 +152,16 @@ public class CreateSpriteLibAsset : EditorWindow
             AnimationUtility.SetKeyRightTangentMode(curve, i, AnimationUtility.TangentMode.Constant);
         }
         clip.SetCurve("", typeof(SpriteResolver), "m_SpriteKey", curve);
+        var settings = AnimationUtility.GetAnimationClipSettings(clip);
+        settings.loopTime = true;
+        AnimationUtility.SetAnimationClipSettings(clip, settings);
         return clip;
+    }
+
+    private float GetKey(string category, string label){
+        var value = GetHash($"{category}_{label}");
+        var fvalue = BitConverter.ToSingle(BitConverter.GetBytes(value));
+        return fvalue;
     }
 
     static int Bit30Hash_GetStringHash(string value)
