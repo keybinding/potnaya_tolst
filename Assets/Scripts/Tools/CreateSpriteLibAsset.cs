@@ -3,11 +3,14 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.U2D.Animation;
+using UnityEditor.Animations;
 
 public class CreateSpriteLibAsset : EditorWindow
 {
     string texturesFolder = "Sprites folder (in Assets/Sprites 1/)";
     private string _spritesRoot = "Assets/Sprites 1/";
+    private string _prefabsFolder = "Assets/Prefabs";
+    private string _animationsFolder = "Assets/Animation";
     private static Regex _groupsRegEx = new Regex(@".*\/([a-zA-Z]*)_([0-9])*.png", RegexOptions.Compiled);
 
     // Add menu named "My Window" to the Window menu
@@ -26,11 +29,52 @@ public class CreateSpriteLibAsset : EditorWindow
         if (GUILayout.Button("All"))
         {
             GenerateAssetLibrary();
+            GeneratePrefab();
         }
         if (GUILayout.Button("AssetLibrary"))
         {
             GenerateAssetLibrary();
         }
+        if (GUILayout.Button("GeneratePrefab"))
+        {
+            GeneratePrefab();
+        }
+    }
+
+    private void GeneratePrefab()
+    {
+        if (!AssetDatabase.IsValidFolder(_prefabsFolder + "/" + texturesFolder))
+            AssetDatabase.CreateFolder(_prefabsFolder, texturesFolder);
+        string prefabPath = _prefabsFolder + "/" + texturesFolder + "/" + texturesFolder + ".prefab";
+        AssetDatabase.DeleteAsset(prefabPath);
+        var go = new GameObject();
+        var animController = GenerateAnimController();
+        go.name = texturesFolder;
+        var spriteRenderer = go.AddComponent<SpriteRenderer>();
+        var animator = go.AddComponent<Animator>();
+        animator.runtimeAnimatorController = animController;
+        var spriteResolver = go.AddComponent<SpriteResolver>();
+        var spriteLibraryPath = _spritesRoot + "SpriteLibraries/" + texturesFolder + ".asset";
+        var spriteLibraryAsset = (SpriteLibraryAsset)AssetDatabase.LoadAssetAtPath(spriteLibraryPath, typeof(SpriteLibraryAsset));
+        var spriteLibrary = go.AddComponent<SpriteLibrary>();
+        spriteLibrary.spriteLibraryAsset = spriteLibraryAsset;
+        spriteResolver.SetCategoryAndLabel("idle", "0");
+        PrefabUtility.SaveAsPrefabAsset(go, prefabPath, out bool success);
+        if (!success)
+            Debug.Log($"Can't save prefab {prefabPath}");
+        //GameObject.DestroyImmediate(go);
+    }
+
+    private AnimatorController GenerateAnimController(){
+        if (!AssetDatabase.IsValidFolder(_animationsFolder + "/" + texturesFolder))
+            AssetDatabase.CreateFolder(_animationsFolder, texturesFolder);
+        var controllerPath = _animationsFolder + "/" + texturesFolder + "/" + texturesFolder + ".controller";
+        AssetDatabase.DeleteAsset(controllerPath);
+        var controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
+        controller.AddParameter("IsWalking", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("Roll", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Punch", AnimatorControllerParameterType.Trigger);
+        return controller;
     }
 
     private void GenerateAssetLibrary()
