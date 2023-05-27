@@ -67,6 +67,8 @@ public class CharMovement : MonoBehaviour
                 a.SetTrigger("Roll");
             }
         }
-        
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            rHandAnimator.SetTrigger("Punch");
+        }
     }
 }

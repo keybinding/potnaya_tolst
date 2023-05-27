@@ -130,6 +130,22 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4774479859033926501}
     m_Modifications:
+    - target: {fileID: 1557299414, guid: 9c5e54bd21958d2b498611e5728a9220, type: 3}
+      propertyPath: m_SpriteKey
+      value: 1.574962e-38
+      objectReference: {fileID: 0}
+    - target: {fileID: 1557299414, guid: 9c5e54bd21958d2b498611e5728a9220, type: 3}
+      propertyPath: m_CategoryHash
+      value: 9.116121e-12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6283741033909118849, guid: 9c5e54bd21958d2b498611e5728a9220, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: e166fac65b94438e299e22b8f8fa1943, type: 3}
+    - target: {fileID: 6283741033909118849, guid: 9c5e54bd21958d2b498611e5728a9220, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6283741033909118854, guid: 9c5e54bd21958d2b498611e5728a9220, type: 3}
       propertyPath: m_RootOrder
       value: 0
