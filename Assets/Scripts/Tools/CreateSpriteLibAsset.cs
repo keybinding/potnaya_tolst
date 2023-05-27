@@ -7,7 +7,7 @@ using UnityEditor.Animations;
 
 public class CreateSpriteLibAsset : EditorWindow
 {
-    string texturesFolder = "Sprites folder (in Assets/Sprites 1/)";
+    string texturesFolder = "";
     private string _spritesRoot = "Assets/Sprites 1/";
     private string _prefabsFolder = "Assets/Prefabs";
     private string _animationsFolder = "Assets/Animation";
@@ -28,15 +28,27 @@ public class CreateSpriteLibAsset : EditorWindow
         texturesFolder = EditorGUILayout.TextField("Sprites Folder", texturesFolder);
         if (GUILayout.Button("All"))
         {
+            if (string.IsNullOrEmpty(texturesFolder)) {
+                Debug.Log("texturesFolder is empty");
+                return;
+            }
             GenerateAssetLibrary();
             GeneratePrefab();
         }
         if (GUILayout.Button("AssetLibrary"))
         {
+            if (string.IsNullOrEmpty(texturesFolder)) {
+                Debug.Log("texturesFolder is empty");
+                return;
+            }
             GenerateAssetLibrary();
         }
         if (GUILayout.Button("GeneratePrefab"))
         {
+            if (string.IsNullOrEmpty(texturesFolder)) {
+                Debug.Log("texturesFolder is empty");
+                return;
+            }
             GeneratePrefab();
         }
     }
@@ -70,10 +82,39 @@ public class CreateSpriteLibAsset : EditorWindow
             AssetDatabase.CreateFolder(_animationsFolder, texturesFolder);
         var controllerPath = _animationsFolder + "/" + texturesFolder + "/" + texturesFolder + ".controller";
         AssetDatabase.DeleteAsset(controllerPath);
+
+        const string isWalking = "IsWalking";
+        const string roll = "Roll";
+        
         var controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
-        controller.AddParameter("IsWalking", AnimatorControllerParameterType.Bool);
-        controller.AddParameter("Roll", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter(isWalking, AnimatorControllerParameterType.Bool);
+        controller.AddParameter(roll, AnimatorControllerParameterType.Trigger);
         controller.AddParameter("Punch", AnimatorControllerParameterType.Trigger);
+
+        var idleState = controller.layers[0].stateMachine.AddState("Idle");
+        var walkState = controller.layers[0].stateMachine.AddState("Walk");
+        var rollState = controller.layers[0].stateMachine.AddState(roll);
+
+        var idleToWalk = idleState.AddTransition(walkState);
+        idleToWalk.AddCondition(AnimatorConditionMode.If, 0, isWalking);
+
+        var walkToIdle = walkState.AddTransition(idleState);
+        walkToIdle.AddCondition(AnimatorConditionMode.IfNot, 0, isWalking);
+
+        var walkToRoll = walkState.AddTransition(rollState);
+        walkToRoll.AddCondition(AnimatorConditionMode.If, 0, roll);
+
+        var rollToWalk = rollState.AddTransition(walkState);
+        rollToWalk.AddCondition(AnimatorConditionMode.If, 0, isWalking);
+        rollToWalk.hasExitTime = true;
+
+        var rollToIdle = rollState.AddTransition(idleState);
+        rollToIdle.AddCondition(AnimatorConditionMode.IfNot, 0, isWalking);
+        rollToIdle.hasExitTime = true;
+
+        var idleToRoll = idleState.AddTransition(rollState);
+        idleToRoll.AddCondition(AnimatorConditionMode.If, 0, roll);
+
         return controller;
     }
 
