@@ -520,6 +520,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Char
       objectReference: {fileID: 0}
+    - target: {fileID: 4012380360079416349, guid: 08ab4a0fe9825d6f2ae9e16637ba2a0c, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: b0b571dc5ba133463b46aba671926531, type: 3}
     - target: {fileID: 4012380360079416350, guid: 08ab4a0fe9825d6f2ae9e16637ba2a0c, type: 3}
       propertyPath: m_RootOrder
       value: 2
