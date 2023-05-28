@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
+using System.Xml.Schema;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CharMovement : MonoBehaviour
@@ -12,12 +15,21 @@ public class CharMovement : MonoBehaviour
     public float yVelocity = 0f;
     public float xVelocity = 0f;
 
+    public float xClampMin = 0f;//could be local. but good for debuging
+    public float xClampMax = 0f;
+
+    public bool enablePerspective = true;
+
+    private float xStart = 0f;
+    private float yStart = 0f;
+
     private Animator animator = null;
     private Animator rHandAnimator = null;
     private List<Animator> commonAnimators = null;
-    
-    private Vector3 left = new Vector3(-0.6f, 0.6f, 1f);
-    private Vector3 right = new Vector3(0.6f, 0.6f, 1f);
+
+    private Vector3 scale = new Vector3(0.6f, 0.6f, 1f);
+    private Vector2 perspective = new Vector2(0f, 0f);
+    private Vector2 dir = new Vector2(0f, 0f);
     // Start is called before the first frame update
     void Start()
     {
@@ -33,6 +45,9 @@ public class CharMovement : MonoBehaviour
         }
 
         commonAnimators = new List<Animator>() {animator, rHandAnimator};
+
+        xStart = transform.position.x;
+        yStart = transform.position.y;
     }
 
     // Update is called once per frame
@@ -41,16 +56,39 @@ public class CharMovement : MonoBehaviour
         //transform.position
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
-        if (horizontal < 0) {
-            transform.localScale = left;
-        }
-        if (horizontal > 0) {
-            transform.localScale = right;
-        }
+
+        float velCoeff = enablePerspective ? (transform.position.y - perspective.y) / (yStart - perspective.y) : 1f;
+        float xVelocityCur = xVelocity * velCoeff;
+        float yVelocityCur = yVelocity * velCoeff;
+
+        if (xVelocityCur < 0f) { scale.x = -Math.Abs(scale.x); }
+        else
+            if (xVelocityCur > 0f) { scale.x = Math.Abs(scale.x); }
+        transform.localScale = scale * velCoeff;
+
         if (horizontal != 0f || vertical != 0f) {
-            float positionDeltaX = horizontal * xVelocity;
-            float positionDeltaY = vertical * yVelocity;
-            float x = Math.Clamp(transform.position.x + positionDeltaX, xMin, xMax);
+            float positionDeltaX = horizontal * xVelocityCur;
+            float positionDeltaY = vertical * yVelocityCur;
+            if (enablePerspective)
+            {
+                dir.x = perspective.x - transform.position.x;
+                dir.y = perspective.y - transform.position.y;
+                if ((vertical < 0f && transform.position.y != yMin) || (vertical > 0f && transform.position.y != yMax))
+                {
+                    dir.Normalize();
+                    positionDeltaX += positionDeltaY * dir.x;
+                    positionDeltaY *= dir.y;
+                }
+            }
+            xClampMin = xMin;
+            xClampMax = xMax;
+            if (enablePerspective)
+            {
+                float perspCoeff = (transform.position.y - yMin) / (perspective.y - yMin);
+                xClampMin = xMin + (perspective.x - xMin) * perspCoeff;
+                xClampMax = xMax + (perspective.x - xMax) * perspCoeff;
+            }
+            float x = Math.Clamp(transform.position.x + positionDeltaX, xClampMin, xClampMax);
             float y = Math.Clamp(transform.position.y + positionDeltaY, yMin, yMax);
             transform.position = new Vector3(x, y, transform.position.z);
             foreach(var a in commonAnimators){
