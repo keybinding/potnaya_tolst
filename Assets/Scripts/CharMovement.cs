@@ -8,8 +8,8 @@ using UnityEngine;
 
 public class CharMovement : MonoBehaviour
 {
-    public float yMax = 0f;
     public float yMin = 0f;
+    public float yMax = 0f;
     public float xMin = 0f;
     public float xMax = 0f;
     public float yVelocity = 0f;
